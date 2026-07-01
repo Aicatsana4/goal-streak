@@ -1,4 +1,4 @@
-package com.aicatsana.goalstreak;
+package com.aicatsana.goalstreak.rest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

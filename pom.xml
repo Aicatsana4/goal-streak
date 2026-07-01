@@ -9,8 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.aicatsana</groupId>
-	<artifactId>goal-streak</artifactId>
+	<artifactId>goal-streak-parent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
 	<name/>
 	<description/>
 	<url/>
@@ -20,6 +21,10 @@
 	<developers>
 		<developer/>
 	</developers>
+	<modules>
+		<module>goal-streak-rest</module>
+		<module>goal-streak-domain</module>
+	</modules>
 	<scm>
 		<connection/>
 		<developerConnection/>
