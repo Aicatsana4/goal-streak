@@ -8,10 +8,18 @@
 		<version>4.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+	<repositories>
+		<repository>
+			<id>central</id>
+			<url>https://repo1.maven.org/maven2</url>
+		</repository>
+	</repositories>
+
 	<groupId>com.aicatsana</groupId>
 	<artifactId>goal-streak</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
+    <packaging>pom</packaging>
+    <name/>
 	<description/>
 	<url/>
 	<licenses>
@@ -20,7 +28,12 @@
 	<developers>
 		<developer/>
 	</developers>
-	<scm>
+    <modules>
+        <module>goal-streak-infrastructure-file</module>
+	    <module>goal-streak-domain</module>
+	    <module>goal-streak-rest</module>
+	</modules>
+    <scm>
 		<connection/>
 		<developerConnection/>
 		<tag/>

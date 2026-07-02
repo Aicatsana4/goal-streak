@@ -1,2 +1,9 @@
 HELP.md
 mvnw*
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+target/
