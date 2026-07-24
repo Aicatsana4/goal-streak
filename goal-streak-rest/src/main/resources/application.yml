@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: goal-streak
+
+goal-file-reader:
+  goals-file-path: ./data/goals/goal-streak.json
