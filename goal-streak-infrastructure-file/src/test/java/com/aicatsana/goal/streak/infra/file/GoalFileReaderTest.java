@@ -57,8 +57,8 @@ class GoalFileReaderTest {
 
         assertThat(content).satisfiesExactly(
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal.goalDurationInDays());
                 }
         );
     }
@@ -78,12 +78,12 @@ class GoalFileReaderTest {
 
         assertThat(content).satisfiesExactlyInAnyOrder(
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal1.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal1.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal1.goalDurationInDays());
                 },
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal2.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal2.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal2.goalDurationInDays());
                 }
         );
     }
@@ -103,8 +103,8 @@ class GoalFileReaderTest {
 
         assertThat(content).satisfiesExactly(
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal1.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal1.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal1.goalDurationInDays());
                 }
         ).hasSize(1);
     }
@@ -136,8 +136,8 @@ class GoalFileReaderTest {
         Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
         assertThat(content).isNotEmpty().satisfiesExactly(
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal.goalDurationInDays());
                 }
         );
 
@@ -156,12 +156,12 @@ class GoalFileReaderTest {
         // assert
         assertThat(readContent).satisfiesExactlyInAnyOrder(
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal1.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal1.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal1.goalDurationInDays());
                 },
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal2.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal2.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal2.goalDurationInDays());
                 }
         );
     }
@@ -174,13 +174,13 @@ class GoalFileReaderTest {
         mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
 
         // test
-        Set<Goal> readContent = goalFileReader.readByGoalName(actualGoal1.getGoalName()).orElse(Collections.emptySet());
+        Set<Goal> readContent = goalFileReader.readByGoalName(actualGoal1.goalName()).orElse(Collections.emptySet());
 
         // assert
         assertThat(readContent).satisfiesExactly(
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal1.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal1.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal1.goalDurationInDays());
                 }
         );
     }
@@ -207,14 +207,14 @@ class GoalFileReaderTest {
         mapper.writeValue(file.toFile(), Set.of(actualGoal));
 
         // test
-        goalFileReader.updateByGoalName(actualGoal.getGoalName(), updatedGoal);
+        goalFileReader.updateByGoalName(actualGoal.goalName(), updatedGoal);
 
         // assert
         Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
         assertThat(content).satisfiesExactly(
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(updatedGoal.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(updatedGoal.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(updatedGoal.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(updatedGoal.goalDurationInDays());
                 }
         );
     }
@@ -228,18 +228,18 @@ class GoalFileReaderTest {
         mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
 
         // test
-        goalFileReader.updateByGoalName(actualGoal1.getGoalName(), updatedGoal);
+        goalFileReader.updateByGoalName(actualGoal1.goalName(), updatedGoal);
 
         // assert
         Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
         assertThat(content).satisfiesExactlyInAnyOrder(
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(updatedGoal.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(updatedGoal.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(updatedGoal.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(updatedGoal.goalDurationInDays());
                 },
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal2.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal2.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal2.goalDurationInDays());
                 }
         );
     }
@@ -252,14 +252,14 @@ class GoalFileReaderTest {
         mapper.writeValue(file.toFile(), Set.of(actualGoal));
 
         // test
-        goalFileReader.updateByGoalName(actualGoal.getGoalName(), updatedGoalWithNegativeDuration);
+        goalFileReader.updateByGoalName(actualGoal.goalName(), updatedGoalWithNegativeDuration);
 
         // assert
         Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
         assertThat(content).satisfiesExactly(
                 goal -> {
-                    assertThat(goal.getGoalName()).isNotEqualTo(updatedGoalWithNegativeDuration.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isNotEqualTo(updatedGoalWithNegativeDuration.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal.goalDurationInDays());
                 }
         );
     }
@@ -273,19 +273,19 @@ class GoalFileReaderTest {
         mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
 
         // test
-        goalFileReader.updateByGoalName(actualGoal1.getGoalName(), updatedGoalWithNegativeDuration);
+        goalFileReader.updateByGoalName(actualGoal1.goalName(), updatedGoalWithNegativeDuration);
 
         // assert
         Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
         assertThat(content).satisfiesExactlyInAnyOrder(
                 goal -> {
-                    assertThat(goal.getGoalName()).isNotEqualTo(updatedGoalWithNegativeDuration.getGoalName());
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal1.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal1.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isNotEqualTo(updatedGoalWithNegativeDuration.goalName());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal1.goalDurationInDays());
                 },
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal2.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal2.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal2.goalDurationInDays());
                 }
         );
     }
@@ -297,7 +297,7 @@ class GoalFileReaderTest {
         mapper.writeValue(file.toFile(), Set.of(actualGoal));
 
         // test
-        goalFileReader.deleteByGoalName(actualGoal.getGoalName());
+        goalFileReader.deleteByGoalName(actualGoal.goalName());
 
         // assert
         Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
@@ -312,14 +312,14 @@ class GoalFileReaderTest {
         mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
 
         // test
-        goalFileReader.deleteByGoalName(actualGoal1.getGoalName());
+        goalFileReader.deleteByGoalName(actualGoal1.goalName());
 
         // assert
         Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
         assertThat(content).satisfiesExactly(
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal2.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal2.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal2.goalDurationInDays());
                 }
         ).size().isEqualTo(1);
     }
@@ -330,7 +330,7 @@ class GoalFileReaderTest {
         Goal actualGoal1 = new Goal("my goal 1", 20);
 
         // test
-        goalFileReader.deleteByGoalName(actualGoal1.getGoalName());
+        goalFileReader.deleteByGoalName(actualGoal1.goalName());
 
         // assert
         Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
@@ -351,12 +351,12 @@ class GoalFileReaderTest {
         Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
         assertThat(content).satisfiesExactlyInAnyOrder(
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal1.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal1.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal1.goalDurationInDays());
                 },
                 goal -> {
-                    assertThat(goal.getGoalName()).isEqualTo(actualGoal2.getGoalName());
-                    assertThat(goal.getGoalDurationInDays()).isEqualTo(actualGoal2.getGoalDurationInDays());
+                    assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal2.goalDurationInDays());
                 }
         ).size().isEqualTo(2);
     }

@@ -23,7 +23,7 @@ public class GoalFileReader {
     }
 
     public void write(Goal goal) throws IOException {
-        if (goal == null || goal.getGoalDurationInDays() <= 0 || isExistingGoalName(goal)) {
+        if (goal == null || goal.goalDurationInDays() <= 0 || isExistingGoalName(goal)) {
             return;
         }
 
@@ -48,7 +48,7 @@ public class GoalFileReader {
         Set<Goal> goals = readGoals();
         Set<Goal> filteredGoals = new HashSet<>();
         for (Goal goal : goals) {
-            if (goal.getGoalName().equals(goalName)) {
+            if (goal.goalName().equals(goalName)) {
                 filteredGoals.add(goal);
             }
         }
@@ -56,17 +56,18 @@ public class GoalFileReader {
     }
 
     public void updateByGoalName(String goalName, Goal newGoal) throws IOException {
-        if (!file.exists() || newGoal == null || newGoal.getGoalDurationInDays() <= 0) {
+        if (!file.exists() || newGoal == null || newGoal.goalDurationInDays() <= 0) {
             return;
         }
 
         Set<Goal> goals = readGoals();
         boolean updated = false;
         for (Goal goal : goals) {
-            if (goal.getGoalName().equals(goalName)) {
-                goal.setGoalName(newGoal.getGoalName());
-                goal.setGoalDurationInDays(newGoal.getGoalDurationInDays());
+            if (goal.goalName().equals(goalName)) {
+                goals.remove(goal);
+                goals.add(new Goal(newGoal.goalName(), newGoal.goalDurationInDays()));
                 updated = true;
+                break;
             }
         }
 
@@ -78,7 +79,7 @@ public class GoalFileReader {
     public void deleteByGoalName(String goalName) throws IOException {
         if (file.exists()) {
             Set<Goal> goals = readGoals();
-            boolean removed = goals.removeIf(goal -> goal.getGoalName().equals(goalName));
+            boolean removed = goals.removeIf(goal -> goal.goalName().equals(goalName));
             if (removed) {
                 mapper.writeValue(file, goals);
             }
@@ -104,6 +105,6 @@ public class GoalFileReader {
     }
 
     private boolean isExistingGoalName(Goal goal) throws IOException {
-        return readGoals().stream().anyMatch(g -> g.getGoalName().equals(goal.getGoalName()));
+        return readGoals().stream().anyMatch(g -> g.goalName().equals(goal.goalName()));
     }
 }

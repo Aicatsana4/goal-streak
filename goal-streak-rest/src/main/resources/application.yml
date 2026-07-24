@@ -3,4 +3,4 @@ spring:
     name: goal-streak
 
 goal-file-reader:
-  file-path: ./data/goals/goal-streak.json
+  goals-file-path: ./data/goals/goal-streak.json
