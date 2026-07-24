@@ -76,6 +76,27 @@ public class GoalFileReader {
         }
     }
 
+    public void updateGoalDurationInDays(String goalName, int goalDurationInDays) throws IOException {
+        if (!file.exists() || goalDurationInDays <= 0) {
+            return;
+        }
+
+        Set<Goal> goals = readGoals();
+        boolean updated = false;
+        for (Goal goal : goals) {
+            if (goal.goalName().equals(goalName)) {
+                goals.remove(goal);
+                goals.add(new Goal(goalName, goalDurationInDays));
+                updated = true;
+                break;
+            }
+        }
+
+        if (updated) {
+            mapper.writeValue(file, goals);
+        }
+    }
+
     public void deleteByGoalName(String goalName) throws IOException {
         if (file.exists()) {
             Set<Goal> goals = readGoals();

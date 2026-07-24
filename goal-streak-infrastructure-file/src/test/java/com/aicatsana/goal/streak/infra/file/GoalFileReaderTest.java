@@ -291,6 +291,55 @@ class GoalFileReaderTest {
     }
 
     @Test
+    void updateGoalDurationInDays_valid_successful() throws IOException {
+        // prepare
+        Goal actualGoal1 = new Goal("my goal 1", 20);
+        Goal actualGoal2 = new Goal("my goal 2", 30);
+        mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
+
+        // test
+        goalFileReader.updateGoalDurationInDays(actualGoal1.goalName(), 50);
+
+
+        // assert
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
+        assertThat(content).satisfiesExactlyInAnyOrder(
+                goal -> {
+                    assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(50);
+                },
+                goal -> {
+                    assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal2.goalDurationInDays());
+                }
+        );
+    }
+
+    @Test
+    void updateGoalDurationInDays_negativeDuration_failed() throws IOException {
+        // prepare
+        Goal actualGoal1 = new Goal("my goal 1", 20);
+        Goal actualGoal2 = new Goal("my goal 2", 30);
+        mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
+
+        // test
+        goalFileReader.updateGoalDurationInDays(actualGoal1.goalName(), -1);
+
+        // assert
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
+        assertThat(content).satisfiesExactlyInAnyOrder(
+                goal -> {
+                    assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal1.goalDurationInDays());
+                },
+                goal -> {
+                    assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
+                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal2.goalDurationInDays());
+                }
+        );
+    }
+
+    @Test
     void deleteByGoalName_validWithSingleGoal_successful() throws IOException {
         // prepare
         Goal actualGoal = new Goal("my goal", 20);
