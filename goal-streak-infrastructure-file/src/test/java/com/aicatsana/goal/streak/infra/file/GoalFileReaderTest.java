@@ -1,6 +1,7 @@
 package com.aicatsana.goal.streak.infra.file;
 
 import com.aicatsana.goal.streak.domain.model.Goal;
+import com.aicatsana.goal.streak.infra.exception.GoalAlreadyExistsException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GoalFileReaderTest {
 
@@ -95,31 +97,21 @@ class GoalFileReaderTest {
         Goal actualGoalwithExistingName = new Goal("my goal 1", 20);
         mapper.writeValue(file.toFile(), Set.of(actualGoal1));
 
-        // test
-        goalFileReader.write(actualGoalwithExistingName);
-
-        // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
-
-        assertThat(content).satisfiesExactly(
-                goal -> {
-                    assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
-                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal1.goalDurationInDays());
-                }
-        ).hasSize(1);
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.write(actualGoalwithExistingName))
+                .isInstanceOf(GoalAlreadyExistsException.class)
+                .hasMessageContaining("Goal already exists");
     }
 
     @Test
-    void write_negativeDurationIntoEmptyFile_failed() throws IOException {
+    void write_negativeDurationIntoEmptyFile_failed() {
         // prepare
         Goal actualGoalWithNegativeDuration = new Goal("my goal", -1);
 
-        // test
-        goalFileReader.write(actualGoalWithNegativeDuration);
-
-        // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
-        assertThat(content).isEmpty();
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.write(actualGoalWithNegativeDuration))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal");
     }
 
     @Test
@@ -129,18 +121,10 @@ class GoalFileReaderTest {
         Goal actualGoalWithNegativeDuration = new Goal("my goal 2", -1);
         mapper.writeValue(file.toFile(), Set.of(actualGoal));
 
-        // test
-        goalFileReader.write(actualGoalWithNegativeDuration);
-
-        // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
-        assertThat(content).isNotEmpty().satisfiesExactly(
-                goal -> {
-                    assertThat(goal.goalName()).isEqualTo(actualGoal.goalName());
-                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal.goalDurationInDays());
-                }
-        );
-
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.write(actualGoalWithNegativeDuration))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal");
     }
 
     @Test
@@ -251,17 +235,10 @@ class GoalFileReaderTest {
         Goal updatedGoalWithNegativeDuration = new Goal("my updated goal", -1);
         mapper.writeValue(file.toFile(), Set.of(actualGoal));
 
-        // test
-        goalFileReader.updateByGoalName(actualGoal.goalName(), updatedGoalWithNegativeDuration);
-
-        // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
-        assertThat(content).satisfiesExactly(
-                goal -> {
-                    assertThat(goal.goalName()).isNotEqualTo(updatedGoalWithNegativeDuration.goalName());
-                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal.goalDurationInDays());
-                }
-        );
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.updateByGoalName(actualGoal.goalName(), updatedGoalWithNegativeDuration))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal");
     }
 
     @Test
@@ -272,22 +249,10 @@ class GoalFileReaderTest {
         Goal updatedGoalWithNegativeDuration = new Goal("my updated goal", -1);
         mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
 
-        // test
-        goalFileReader.updateByGoalName(actualGoal1.goalName(), updatedGoalWithNegativeDuration);
-
-        // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
-        assertThat(content).satisfiesExactlyInAnyOrder(
-                goal -> {
-                    assertThat(goal.goalName()).isNotEqualTo(updatedGoalWithNegativeDuration.goalName());
-                    assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
-                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal1.goalDurationInDays());
-                },
-                goal -> {
-                    assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
-                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal2.goalDurationInDays());
-                }
-        );
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.updateByGoalName(actualGoal1.goalName(), updatedGoalWithNegativeDuration))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal");
     }
 
     @Test
@@ -322,21 +287,10 @@ class GoalFileReaderTest {
         Goal actualGoal2 = new Goal("my goal 2", 30);
         mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
 
-        // test
-        goalFileReader.updateGoalDurationInDays(actualGoal1.goalName(), -1);
-
-        // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
-        assertThat(content).satisfiesExactlyInAnyOrder(
-                goal -> {
-                    assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
-                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal1.goalDurationInDays());
-                },
-                goal -> {
-                    assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
-                    assertThat(goal.goalDurationInDays()).isEqualTo(actualGoal2.goalDurationInDays());
-                }
-        );
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.updateGoalDurationInDays(actualGoal1.goalName(), -1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal");
     }
 
     @Test

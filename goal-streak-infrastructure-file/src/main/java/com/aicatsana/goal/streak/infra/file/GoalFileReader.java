@@ -1,11 +1,13 @@
 package com.aicatsana.goal.streak.infra.file;
 
 import com.aicatsana.goal.streak.domain.model.Goal;
+import com.aicatsana.goal.streak.infra.exception.GoalAlreadyExistsException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Optional;
@@ -23,8 +25,12 @@ public class GoalFileReader {
     }
 
     public void write(Goal goal) throws IOException {
-        if (goal == null || goal.goalDurationInDays() <= 0 || isExistingGoalName(goal)) {
-            return;
+        if (goal == null || goal.goalDurationInDays() <= 0) {
+            throw new IllegalArgumentException("Invalid goal");
+        }
+
+        if (isExistingGoalName(goal)) {
+            throw new GoalAlreadyExistsException("Goal already exists");
         }
 
         Set<Goal> goals = readGoals();
@@ -56,8 +62,11 @@ public class GoalFileReader {
     }
 
     public void updateByGoalName(String goalName, Goal newGoal) throws IOException {
-        if (!file.exists() || newGoal == null || newGoal.goalDurationInDays() <= 0) {
-            return;
+        if (!file.exists()) {
+            throw new FileNotFoundException("File not found");
+        }
+        if (newGoal == null || newGoal.goalDurationInDays() <= 0) {
+            throw new IllegalArgumentException("Invalid goal");
         }
 
         Set<Goal> goals = readGoals();
@@ -77,8 +86,11 @@ public class GoalFileReader {
     }
 
     public void updateGoalDurationInDays(String goalName, int goalDurationInDays) throws IOException {
-        if (!file.exists() || goalDurationInDays <= 0) {
-            return;
+        if (!file.exists()) {
+            throw new FileNotFoundException("File not found");
+        }
+        if (goalName == null || goalDurationInDays <= 0) {
+            throw new IllegalArgumentException("Invalid goal");
         }
 
         Set<Goal> goals = readGoals();
