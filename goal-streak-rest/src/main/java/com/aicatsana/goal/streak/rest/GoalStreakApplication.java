@@ -8,8 +8,8 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan("com.aicatsana.goal.streak")
 public class GoalStreakApplication {
 
-	static void main() {
-		SpringApplication.run(GoalStreakApplication.class);
+	public static void main(String[] args) {
+		SpringApplication.run(GoalStreakApplication.class, args);
 	}
 
 }

@@ -25,12 +25,12 @@ public class GoalFileReader {
     }
 
     public void write(Goal goal) throws IOException {
-        if (goal == null || goal.goalDurationInDays() <= 0) {
-            throw new IllegalArgumentException("Invalid goal");
+        if (goal == null) {
+            throw new IllegalArgumentException("Invalid goal.");
         }
 
         if (isExistingGoalName(goal)) {
-            throw new GoalAlreadyExistsException("Goal already exists");
+            throw new GoalAlreadyExistsException("Goal already exists.");
         }
 
         Set<Goal> goals = readGoals();
@@ -47,6 +47,10 @@ public class GoalFileReader {
     }
 
     public Optional<Set<Goal>> readByGoalName(String goalName) throws IOException {
+        if (goalName == null || goalName.isBlank()) {
+            throw new IllegalArgumentException("Invalid goal name.");
+        }
+
         if (!file.exists()) {
             return Optional.empty();
         }
@@ -65,8 +69,13 @@ public class GoalFileReader {
         if (!file.exists()) {
             throw new FileNotFoundException("File not found");
         }
-        if (newGoal == null || newGoal.goalDurationInDays() <= 0) {
-            throw new IllegalArgumentException("Invalid goal");
+
+        if (newGoal == null) {
+            throw new IllegalArgumentException("Invalid goal.");
+        }
+
+        if (goalName == null || goalName.isBlank()) {
+            throw new IllegalArgumentException("Invalid goal name.");
         }
 
         Set<Goal> goals = readGoals();
@@ -85,12 +94,16 @@ public class GoalFileReader {
         }
     }
 
-    public void updateGoalDurationInDays(String goalName, int goalDurationInDays) throws IOException {
+    public void updateGoalDurationInDaysByGoalName(String goalName, int goalDurationInDays) throws IOException {
         if (!file.exists()) {
-            throw new FileNotFoundException("File not found");
+            throw new FileNotFoundException("File not found.");
         }
-        if (goalName == null || goalDurationInDays <= 0) {
-            throw new IllegalArgumentException("Invalid goal");
+        if (goalName == null || goalName.isBlank()) {
+            throw new IllegalArgumentException("Invalid goal name.");
+        }
+
+        if (goalDurationInDays < 0) {
+            throw new IllegalArgumentException("Invalid goal duration.");
         }
 
         Set<Goal> goals = readGoals();
@@ -110,6 +123,10 @@ public class GoalFileReader {
     }
 
     public void deleteByGoalName(String goalName) throws IOException {
+        if (goalName == null || goalName.isBlank()) {
+            throw new IllegalArgumentException("Invalid goal name.");
+        }
+
         if (file.exists()) {
             Set<Goal> goals = readGoals();
             boolean removed = goals.removeIf(goal -> goal.goalName().equals(goalName));

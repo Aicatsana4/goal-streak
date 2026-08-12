@@ -9,7 +9,10 @@ public record Goal(@ValidGoal
                    @PositiveOrZero
                    int goalDurationInDays) {
 
-    public Goal {
+    public Goal(String goalName, int goalDurationInDays) {
+        this.goalName = goalName;
+        this.goalDurationInDays = goalDurationInDays;
+
         ValidationUtil.validate(this);
     }
 }

@@ -13,9 +13,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class GoalTest {
 
     @Test
-    void whenValidData_successful(){
+    void whenValidData_successful() {
         // prepare
-        String validGoalName = "Read a book";
+        String validGoalName = "Readbook";
         int validGoalDurationInDays = 30;
 
         // test
@@ -29,7 +29,7 @@ class GoalTest {
     }
 
     @Test
-    void whenGoalDurationInDaysIsZero_successful(){
+    void whenGoalDurationInDaysIsZero_successful() {
         // prepare
         String validGoalName = "Read a book";
         int validGoalDurationInDays = 0;
@@ -45,7 +45,7 @@ class GoalTest {
     }
 
     @Test
-    void whenGoalDurationInDaysIsNegative_throwsValidationException(){
+    void whenGoalDurationInDaysIsNegative_throwsValidationException() {
         // prepare
         String validGoalName = "Read a book";
         int invalidGoalDurationInDays = -30;
@@ -58,7 +58,7 @@ class GoalTest {
 
     @ParameterizedTest
     @MethodSource("invalidGoalNames")
-    void whenInvalidGoalName_throwsValidationException(String invalidGoalName){
+    void whenInvalidGoalName_throwsValidationException(String invalidGoalName) {
         // prepare
         int validGoalDurationInDays = 30;
 
@@ -68,7 +68,7 @@ class GoalTest {
                 .hasMessageContaining("Goal.goalName Goal name must be 3-20 printable characters");
     }
 
-    static Stream<String> invalidGoalNames(){
+    static Stream<String> invalidGoalNames() {
         return Stream.of(
                 " ",
                 null,

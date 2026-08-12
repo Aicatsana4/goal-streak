@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GoalFileReaderTest {
@@ -28,11 +29,9 @@ class GoalFileReaderTest {
 
     @BeforeEach
     void createFile() throws IOException {
-        this.tempDir = Files.createTempDirectory("goal-test-");
         this.file = tempDir.resolve("goals.json");
         this.mapper = new ObjectMapper();
-        GoalFileReaderProperties goalFileReaderProperties = new GoalFileReaderProperties(file.toString());
-        this.goalFileReader = new GoalFileReader(goalFileReaderProperties);
+        this.goalFileReader = new GoalFileReader(new GoalFileReaderProperties(file.toString()));
     }
 
     @AfterEach
@@ -47,7 +46,7 @@ class GoalFileReaderTest {
 
 
     @Test
-    void write_validIntoEmptyFile_successful() throws IOException {
+    void write_whenValidDataAndEmptyFile_successful() throws IOException {
         // prepare
         Goal actualGoal = new Goal("my goal", 20);
 
@@ -55,7 +54,8 @@ class GoalFileReaderTest {
         goalFileReader.write(actualGoal);
 
         // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {
+        });
 
         assertThat(content).satisfiesExactly(
                 goal -> {
@@ -66,7 +66,7 @@ class GoalFileReaderTest {
     }
 
     @Test
-    void write_valid_successful() throws IOException {
+    void write_whenValidData_successful() throws IOException {
         // prepare
         Goal actualGoal1 = new Goal("my goal 1", 10);
         Goal actualGoal2 = new Goal("my goal 2", 20);
@@ -76,7 +76,8 @@ class GoalFileReaderTest {
         goalFileReader.write(actualGoal2);
 
         // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {
+        });
 
         assertThat(content).satisfiesExactlyInAnyOrder(
                 goal -> {
@@ -91,10 +92,10 @@ class GoalFileReaderTest {
     }
 
     @Test
-    void write_alreadyExistingGoalName_noChange() throws IOException {
+    void write_whenAlreadyExistingGoalName_noChange() throws IOException {
         // prepare
-        Goal actualGoal1 = new Goal("my goal 1", 10);
-        Goal actualGoalwithExistingName = new Goal("my goal 1", 20);
+        Goal actualGoal1 = new Goal("my goal", 10);
+        Goal actualGoalwithExistingName = new Goal("my goal", 20);
         mapper.writeValue(file.toFile(), Set.of(actualGoal1));
 
         // test & assert
@@ -104,31 +105,18 @@ class GoalFileReaderTest {
     }
 
     @Test
-    void write_negativeDurationIntoEmptyFile_failed() {
+    void write_whenNullGoal_throwsIllegalArgumentException() {
         // prepare
-        Goal actualGoalWithNegativeDuration = new Goal("my goal", -1);
+        Goal nullGoal = null;
 
         // test & assert
-        assertThatThrownBy(() -> goalFileReader.write(actualGoalWithNegativeDuration))
+        assertThatThrownBy(() -> goalFileReader.write(nullGoal))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid goal");
+                .hasMessageContaining("Invalid goal.");
     }
 
     @Test
-    void write_negativeDuration_failed() throws IOException {
-        // prepare
-        Goal actualGoal = new Goal("my goal 1", 1);
-        Goal actualGoalWithNegativeDuration = new Goal("my goal 2", -1);
-        mapper.writeValue(file.toFile(), Set.of(actualGoal));
-
-        // test & assert
-        assertThatThrownBy(() -> goalFileReader.write(actualGoalWithNegativeDuration))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid goal");
-    }
-
-    @Test
-    void readGoals_valid_successful() throws IOException{
+    void readAll_whenValidData_successful() throws IOException {
         // prepare
         Goal actualGoal1 = new Goal("my goal 1", 20);
         Goal actualGoal2 = new Goal("my goal 2", 30);
@@ -151,7 +139,19 @@ class GoalFileReaderTest {
     }
 
     @Test
-    void readByGoalName_valid_successful() throws IOException{
+    void readAll_whenFileDoesNotExist_returnsEmpty() throws IOException {
+        // prepare
+        Files.deleteIfExists(file);
+
+        // test
+        Set<Goal> readContent = goalFileReader.readAll().orElse(Collections.emptySet());
+
+        // assert
+        assertThat(readContent).isEmpty();
+    }
+
+    @Test
+    void readByGoalName_whenValidData_successful() throws IOException {
         // prepare
         Goal actualGoal1 = new Goal("my goal 1", 20);
         Goal actualGoal2 = new Goal("my goal 2", 30);
@@ -170,11 +170,21 @@ class GoalFileReaderTest {
     }
 
     @Test
-    void readByGoalName_goalNameDoesNotExist_successful() throws IOException{
+    void readByGoalName_whenGoalNameDoesNotExist_returnsEmpty() throws IOException {
         // prepare
-        Goal actualGoal1 = new Goal("my goal 1", 20);
-        Goal actualGoal2 = new Goal("my goal 2", 30);
-        mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
+        String goalName = "non-existent goal";
+
+        // test
+        Set<Goal> readContent = goalFileReader.readByGoalName(goalName).orElse(Collections.emptySet());
+
+        // assert
+        assertThat(readContent).isEmpty();
+    }
+
+    @Test
+    void readByGoalName_whenFileDoesNotExist_returnsEmpty() throws IOException {
+        // prepare
+        Files.deleteIfExists(file);
 
         // test
         Set<Goal> readContent = goalFileReader.readByGoalName("non-existent goal").orElse(Collections.emptySet());
@@ -184,27 +194,29 @@ class GoalFileReaderTest {
     }
 
     @Test
-    void updateByGoalName_validWithSingleGoal_successful() throws IOException {
+    void readByGoalName_whenNullGoalName_throwsIllegalArgumentException() {
         // prepare
-        Goal actualGoal = new Goal("my goal", 20);
-        Goal updatedGoal = new Goal("my updated goal", 30);
-        mapper.writeValue(file.toFile(), Set.of(actualGoal));
+        String goalName = null;
 
-        // test
-        goalFileReader.updateByGoalName(actualGoal.goalName(), updatedGoal);
-
-        // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
-        assertThat(content).satisfiesExactly(
-                goal -> {
-                    assertThat(goal.goalName()).isEqualTo(updatedGoal.goalName());
-                    assertThat(goal.goalDurationInDays()).isEqualTo(updatedGoal.goalDurationInDays());
-                }
-        );
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.readByGoalName(goalName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal name.");
     }
 
     @Test
-    void updateByGoalName_valid_successful() throws IOException {
+    void readByGoalName_whenBlankGoalName_throwsIllegalArgumentException() {
+        // prepare
+        String goalName = "  ";
+
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.readByGoalName(goalName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal name.");
+    }
+
+    @Test
+    void updateByGoalName_whenValidData_successful() throws IOException {
         // prepare
         Goal actualGoal1 = new Goal("my goal 1", 20);
         Goal actualGoal2 = new Goal("my goal 2", 30);
@@ -215,7 +227,8 @@ class GoalFileReaderTest {
         goalFileReader.updateByGoalName(actualGoal1.goalName(), updatedGoal);
 
         // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {
+        });
         assertThat(content).satisfiesExactlyInAnyOrder(
                 goal -> {
                     assertThat(goal.goalName()).isEqualTo(updatedGoal.goalName());
@@ -229,49 +242,104 @@ class GoalFileReaderTest {
     }
 
     @Test
-    void updateByGoalName_negativeDurationWithSingleGoal_failed() throws IOException {
+    void updateByGoalName_whenFileIsEmpty_successful() throws IOException {
         // prepare
-        Goal actualGoal = new Goal("my goal", 20);
-        Goal updatedGoalWithNegativeDuration = new Goal("my updated goal", -1);
-        mapper.writeValue(file.toFile(), Set.of(actualGoal));
+        String goalName = "my goal";
+        Goal updatedGoal = new Goal("my updated goal", 40);
 
-        // test & assert
-        assertThatThrownBy(() -> goalFileReader.updateByGoalName(actualGoal.goalName(), updatedGoalWithNegativeDuration))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid goal");
+        // test
+        goalFileReader.updateByGoalName(goalName, updatedGoal);
+
+        // assert
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {
+        });
+        assertThat(content).isEmpty();
     }
 
     @Test
-    void updateByGoalName_negativeDuration_failed() throws IOException {
+    void updateByGoalName_when_successful() throws IOException {
         // prepare
-        Goal actualGoal1 = new Goal("my goal 1", 20);
-        Goal actualGoal2 = new Goal("my goal 2", 30);
-        Goal updatedGoalWithNegativeDuration = new Goal("my updated goal", -1);
-        mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
+        String goalName = "my goal";
+        Goal updatedGoal = new Goal("my goal", 40);
 
-        // test & assert
-        assertThatThrownBy(() -> goalFileReader.updateByGoalName(actualGoal1.goalName(), updatedGoalWithNegativeDuration))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid goal");
+        // test
+        goalFileReader.updateByGoalName(goalName, updatedGoal);
+
+        // assert
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {
+        });
+        assertThat(content).isEmpty();
     }
 
     @Test
-    void updateGoalDurationInDays_valid_successful() throws IOException {
+    void updateByGoalName_whenFileDoesNotExist_throwsFileNotFoundException() throws IOException {
+        // prepare
+        Files.deleteIfExists(file);
+        Goal expectedUpdatedGoal = new Goal("my updated goal", 30);
+        String goalName = "my goal";
+
+        // test
+        assertThatThrownBy(() -> goalFileReader.updateByGoalName(goalName, expectedUpdatedGoal))
+                .isInstanceOf(IOException.class)
+                .hasMessageContaining("File not found");
+    }
+
+    @Test
+    void updateByGoalName_whenNullNewGoal_throwsIllegalArgumentException() {
+        // prepare
+        Goal updatedGoal = null;
+        String goalName = "my goal";
+
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.updateByGoalName(goalName, updatedGoal))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal.");
+    }
+
+    @Test
+    void updateByGoalName_whenNullGoalName_throwsIllegalArgumentException() {
+        // prepare
+        Goal expectedUpdatedGoal = new Goal("my updated goal", 30);
+        String goalName = null;
+
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.updateByGoalName(goalName, expectedUpdatedGoal))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal name.");
+    }
+
+    @Test
+    void updateByGoalName_whenBlankGoalName_throwsIllegalArgumentException() {
+        // prepare
+        Goal expectedUpdatedGoal = new Goal("my updated goal", 30);
+        String goalName = " ";
+
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.updateByGoalName(goalName, expectedUpdatedGoal))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal name.");
+    }
+
+
+    @Test
+    void updateGoalDurationInDays_whenValidData_successful() throws IOException {
         // prepare
         Goal actualGoal1 = new Goal("my goal 1", 20);
         Goal actualGoal2 = new Goal("my goal 2", 30);
+        int newGoalDurationInDays = 50;
         mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
 
         // test
-        goalFileReader.updateGoalDurationInDays(actualGoal1.goalName(), 50);
+        goalFileReader.updateGoalDurationInDaysByGoalName(actualGoal1.goalName(), newGoalDurationInDays);
 
 
         // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {
+        });
         assertThat(content).satisfiesExactlyInAnyOrder(
                 goal -> {
                     assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
-                    assertThat(goal.goalDurationInDays()).isEqualTo(50);
+                    assertThat(goal.goalDurationInDays()).isEqualTo(newGoalDurationInDays);
                 },
                 goal -> {
                     assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
@@ -281,16 +349,67 @@ class GoalFileReaderTest {
     }
 
     @Test
-    void updateGoalDurationInDays_negativeDuration_failed() throws IOException {
+    void updateGoalDurationInDays_whenNegativeDuration_throwsIllegalArgumentException() {
         // prepare
-        Goal actualGoal1 = new Goal("my goal 1", 20);
-        Goal actualGoal2 = new Goal("my goal 2", 30);
-        mapper.writeValue(file.toFile(), Set.of(actualGoal1, actualGoal2));
+        int goalDurationInDays = -1;
+        String goalName = "my goal";
 
         // test & assert
-        assertThatThrownBy(() -> goalFileReader.updateGoalDurationInDays(actualGoal1.goalName(), -1))
+        assertThatThrownBy(() -> goalFileReader.updateGoalDurationInDaysByGoalName(goalName, goalDurationInDays))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid goal");
+                .hasMessageContaining("Invalid goal duration.");
+    }
+
+    @Test
+    void updateGoalDurationInDays_whenNullGoalName_throwsIllegalArgumentException() {
+        // prepare
+        int goalDurationInDays = 30;
+        String goalName = null;
+
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.updateGoalDurationInDaysByGoalName(goalName, goalDurationInDays))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal name.");
+    }
+
+    @Test
+    void updateGoalDurationInDays_whenBlankGoalName_throwsIllegalArgumentException() {
+        // prepare
+        int goalDurationInDays = 30;
+        String goalName = " ";
+
+        // test & assert
+        assertThatThrownBy(() -> goalFileReader.updateGoalDurationInDaysByGoalName(goalName, goalDurationInDays))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal name.");
+    }
+
+    @Test
+    void updateGoalDurationInDaysByGoalName_whenFileDoesNotExist_throwsFileNotFoundException() throws IOException {
+        // prepare
+        Files.deleteIfExists(file);
+        int goalDurationInDays = 30;
+        String goalName = "my goal";
+
+        // test
+        assertThatThrownBy(() -> goalFileReader.updateGoalDurationInDaysByGoalName(goalName, goalDurationInDays))
+                .isInstanceOf(IOException.class)
+                .hasMessageContaining("File not found");
+    }
+
+    @Test
+    void updateGoalDurationInDaysByGoalName_whenFileIsEmpty_successful() throws IOException {
+        // prepare
+        String goalName = "my goal";
+        int goalDurationInDays = 40;
+
+        // test
+        goalFileReader.updateGoalDurationInDaysByGoalName(goalName, goalDurationInDays);
+
+        // assert
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {
+        });
+        assertThat(content).isEmpty();
     }
 
     @Test
@@ -303,7 +422,8 @@ class GoalFileReaderTest {
         goalFileReader.deleteByGoalName(actualGoal.goalName());
 
         // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {
+        });
         assertThat(content).isEmpty();
     }
 
@@ -318,7 +438,8 @@ class GoalFileReaderTest {
         goalFileReader.deleteByGoalName(actualGoal1.goalName());
 
         // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {
+        });
         assertThat(content).satisfiesExactly(
                 goal -> {
                     assertThat(goal.goalName()).isEqualTo(actualGoal2.goalName());
@@ -336,8 +457,40 @@ class GoalFileReaderTest {
         goalFileReader.deleteByGoalName(actualGoal1.goalName());
 
         // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {
+        });
         assertThat(content).isEmpty();
+    }
+
+    @Test
+    void deleteByGoalName_whenNullGoalName_throwsIllegalArgumentException() {
+        // prepare
+        String goalName = null;
+
+        // assert
+        assertThatThrownBy(() -> goalFileReader.deleteByGoalName(goalName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal name.");
+    }
+
+    @Test
+    void deleteByGoalName_whenBlankGoalName_throwsIllegalArgumentException() {
+        // prepare
+        String goalName = " ";
+
+        // assert
+        assertThatThrownBy(() -> goalFileReader.deleteByGoalName(goalName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid goal name.");
+    }
+
+    @Test
+    void deleteByGoalName__NoChange() throws IOException {
+        // prepare
+        Files.deleteIfExists(file);
+
+        // test & assert
+        assertThatNoException().isThrownBy(() -> goalFileReader.deleteByGoalName("my goal"));
     }
 
     @Test
@@ -351,7 +504,8 @@ class GoalFileReaderTest {
         goalFileReader.deleteByGoalName("non-existent goal");
 
         // assert
-        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {});
+        Set<Goal> content = mapper.readValue(file.toFile(), new TypeReference<>() {
+        });
         assertThat(content).satisfiesExactlyInAnyOrder(
                 goal -> {
                     assertThat(goal.goalName()).isEqualTo(actualGoal1.goalName());
